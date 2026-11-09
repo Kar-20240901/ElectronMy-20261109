@@ -2,13 +2,12 @@
   "name": "electronmy-20261109",
   "version": "1.0.0",
   "private": true,
-  "author": "",
   "license": "MIT",
   "type": "module",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build && electron-builder",
+    "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "electron:dev": "vite",
     "electron:build": "vue-tsc --noEmit && vite build && tsc -p tsconfig.node.json && electron-builder"
@@ -20,12 +19,14 @@
     "vue": "^3.5.45"
   },
   "devDependencies": {
-    "@types/node": "^26.6.6",
+    "@iconify/json": "^2.2.554",
+    "@iconify/tailwind4": "^1.2.3",
+    "@types/node": "^24.19.2",
     "@vitejs/plugin-vue": "^6.0.10",
     "@vue/tsconfig": "^0.9.1",
     "electron": "^45.2.3",
     "tailwindcss": "^4.3.5",
-    "typescript": "^7.0.2",
+    "typescript": "~6.0.3",
     "vite": "^8.3.6",
     "vue-tsc": "^3.3.14"
   }
