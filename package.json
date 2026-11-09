@@ -1,0 +1,32 @@
+{
+  "name": "electronmy-20261109",
+  "version": "1.0.0",
+  "private": true,
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build && electron-builder",
+    "preview": "vite preview",
+    "electron:dev": "vite",
+    "electron:build": "vue-tsc --noEmit && vite build && tsc -p tsconfig.node.json && electron-builder"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
+    "@tailwindcss/vite": "^4.3.5",
+    "element-plus": "^2.14.8",
+    "vue": "^3.5.45"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "@vue/tsconfig": "^0.9.1",
+    "electron": "^45.2.3",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.6",
+    "vue-tsc": "^3.3.14"
+  }
+}
