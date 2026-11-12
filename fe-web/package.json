@@ -1,16 +1,13 @@
 {
-  "name": "electronmy-20261109",
+  "name": "electronmy-feweb-20261109",
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
   "type": "module",
-  "main": "index.js",
   "scripts": {
-    "dev": "../node_modules/.bin/vite",
-    "build": "../node_modules/.bin/vue-tsc --noEmit && vite build",
-    "preview": "../node_modules/.bin/vite preview",
-    "electron:devtemp": "chcp 65001 && ../node_modules/.bin/tsc --project ./electron && electron ./electron-dist/main.js",
-    "electron:build": "../node_modules/.bin/vue-tsc --noEmit && vite build && tsc -p tsconfig.node.json && chcp 65001 && electron-builder --win --config electron/electron-builder.yml"
+    "fe:dev": "vite",
+    "fe:build": "vue-tsc --noEmit && vite build",
+    "fe:preview": "vite preview"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.5",
@@ -30,8 +27,6 @@
     "@types/node": "^24.19.2",
     "@vitejs/plugin-vue": "^6.0.10",
     "@vue/tsconfig": "^0.9.1",
-    "electron": "^45.2.3",
-    "electron-builder": "^26.18.0",
     "tailwindcss": "^4.3.5",
     "typescript": "~6.0.3",
     "unplugin-auto-import": "^21.1.0",

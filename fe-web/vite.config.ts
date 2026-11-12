@@ -8,6 +8,9 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    outDir: 'fe-web-dist' // 自定义输出目录
+  },
   plugins: [
     vue(),
     tailwindcss(),

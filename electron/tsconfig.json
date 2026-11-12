@@ -4,15 +4,10 @@
     "noImplicitAny": true,
     "sourceMap": true,
     "rootDir": ".",
-    "outDir": "../electron-dist",
-    "paths": {
-      "*": [
-        "../node_modules/*"
-      ]
-    }
+    "outDir": "./electron-dist"
   },
   "include": [
     "main.ts",
-    "script"
+    "script/**/*.ts"
   ]
 }

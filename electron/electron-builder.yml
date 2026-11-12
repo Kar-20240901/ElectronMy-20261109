@@ -6,10 +6,8 @@ directories:
   buildResources: build
 
 files:
-  - dist/**/*
-  - electron/main.js
-  - electron/preload.js
-  - package.json
+  - ../fe-web/fe-web-dist/**/*
+  - electron-dist/**/*
 
 asar: true
 
@@ -17,7 +15,7 @@ win:
   target:
     - nsis
     - portable
-  icon: electron/icon.ico
+  icon: icon.ico
 
 nsis:
   oneClick: false

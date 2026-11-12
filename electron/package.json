@@ -1,0 +1,17 @@
+{
+  "name": "electronmy-20261109",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "electron:dev": "chcp 65001 && tsc && electron ./electron-dist/main.js",
+    "electron:build": "chcp 65001 && tsc && electron-builder --win --config electron/electron-builder.yml"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0",
+    "typescript": "~6.0.3"
+  }
+}
