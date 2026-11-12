@@ -6,11 +6,11 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview",
-    "electron:devtemp": "chcp 65001 && tsc --project ./electron && electron ./electron-dist/main.js",
-    "electron:build": "vue-tsc --noEmit && vite build && tsc -p tsconfig.node.json && chcp 65001 && electron-builder --win --config ./electron-builder.yml"
+    "dev": "../node_modules/.bin/vite",
+    "build": "../node_modules/.bin/vue-tsc --noEmit && vite build",
+    "preview": "../node_modules/.bin/vite preview",
+    "electron:devtemp": "chcp 65001 && ../node_modules/.bin/tsc --project ./electron && electron ./electron-dist/main.js",
+    "electron:build": "../node_modules/.bin/vue-tsc --noEmit && vite build && tsc -p tsconfig.node.json && chcp 65001 && electron-builder --win --config electron/electron-builder.yml"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.5",

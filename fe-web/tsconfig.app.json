@@ -13,8 +13,8 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue"
+    "fe-web/src/**/*.ts",
+    "fe-web/src/**/*.tsx",
+    "fe-web/src/**/*.vue"
   ]
 }
