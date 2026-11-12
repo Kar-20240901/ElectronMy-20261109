@@ -1,0 +1,30 @@
+appId: com.electronmy.20261109.myapp
+productName: ElectronMy-20261109
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - dist/**/*
+  - electron/main.js
+  - electron/preload.js
+  - package.json
+
+asar: true
+
+win:
+  target:
+    - nsis
+    - portable
+  icon: electron/icon.ico
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+
+portable:
+  artifactName: ElectronMy-20261109-1.0.0.exe

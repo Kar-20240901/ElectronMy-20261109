@@ -1,6 +1,8 @@
 node_modules
 .DS_Store
 dist
+electron-dist
+fe-web-dist
 dist-ssr
 *.local
 .eslintcache
