@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useDraggable } from "@vueuse/core";
-
 defineOptions({
   name: "FeTitle",
 });
@@ -35,22 +33,12 @@ function toggleMaximizeClick() {
 function closeClick() {
   window.ipcRenderer?.send("electron:close");
 }
-
-const titleBar = useTemplateRef<HTMLElement>("titleBar");
-
-useDraggable(titleBar, {
-  onMove(_pos, e) {
-    const dx = e.movementX;
-    const dy = e.movementY;
-    window.ipcRenderer?.send("electron:move", { dx, dy });
-  },
-});
 </script>
 
 <template>
   <div
-    ref="titleBar"
-    class="fe-title w-full shrink-0 h-11 pl-3 pr-1 flex items-center justify-between bg-gradient-to-r from-gray-100 to-gray-200 border-b border-gray-300 select-none"
+    class="fe-title w-full shrink-0 h-11 pl-3 pr-1 flex items-center justify-between bg-gradient-to-r from-gray-100 to-gray-200 border-b border-gray-300 select-none electron-region-drag"
+    @dblclick="toggleMaximizeClick"
   >
     <div class="flex items-center gap-2">
       <div
@@ -61,7 +49,7 @@ useDraggable(titleBar, {
       </span>
     </div>
 
-    <div class="flex items-center gap-1">
+    <div class="flex items-center gap-1 electron-region-no-drag">
       <div
         @click="minimizeClick"
         class="group w-11 h-9 flex items-center justify-center rounded-md text-gray-600 hover:bg-black/5 transition"

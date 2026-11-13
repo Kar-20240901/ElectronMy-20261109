@@ -1,3 +1,13 @@
 @import "tailwindcss";
 
 @plugin "@iconify/tailwind4";
+
+@layer utilities {
+  .electron-region-drag {
+    -webkit-app-region: drag;
+  }
+
+  .electron-region-no-drag {
+    -webkit-app-region: no-drag;
+  }
+}
