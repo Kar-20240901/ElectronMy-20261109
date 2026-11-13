@@ -1,0 +1,24 @@
+directories:
+  output: release
+  buildResources: electron-build
+appId: com.electronmy.20261109.myapp
+productName: ElectronMy-20261109
+files:
+  - filter:
+      - ../fe-web/fe-web-dist/**/*
+      - ./electron-dist/**/*
+asar: false
+win:
+  target:
+    - nsis
+    - portable
+  icon: icon.ico
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+portable:
+  artifactName: ElectronMy-20261109-1.0.0.exe
+electronVersion: 45.3.0

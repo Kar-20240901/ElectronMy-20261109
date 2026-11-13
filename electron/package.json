@@ -4,14 +4,17 @@
   "private": true,
   "license": "MIT",
   "scripts": {
+    "electron:devall": "npm-run-all -p electron:devfe electron:dev",
+    "electron:devfe": "npm --prefix ../fe-web run fe:dev",
     "electron:dev": "chcp 65001 && tsc && electron ./electron-dist/main.js",
-    "electron:build": "chcp 65001 && tsc && electron-builder --win --config electron/electron-builder.yml"
-  },
-  "dependencies": {
+    "electron:buildall": "npm run electron:buildfe && npm run electron:build",
+    "electron:buildfe": "npm --prefix ../fe-web run fe:build",
+    "electron:build": "chcp 65001 && tsc && electron-builder --win --config electron-builder.yml"
   },
   "devDependencies": {
     "electron": "^45.2.3",
     "electron-builder": "^26.18.0",
+    "npm-run-all": "^4.1.5",
     "typescript": "~6.0.3"
   }
 }

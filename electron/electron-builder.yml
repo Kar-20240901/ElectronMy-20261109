@@ -3,13 +3,13 @@ productName: ElectronMy-20261109
 
 directories:
   output: release
-  buildResources: build
+  buildResources: electron-build
 
 files:
   - ../fe-web/fe-web-dist/**/*
-  - electron-dist/**/*
+  - ./electron-dist/**/*
 
-asar: true
+asar: false
 
 win:
   target:
