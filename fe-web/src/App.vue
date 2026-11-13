@@ -5,9 +5,6 @@ import FeContent from "./views/fecontent/index.vue";
 
 <template>
   <el-config-provider :locale="zhCn">
-    <div>测试页面</div>
-    <i-ep-plus/>
-    <i-ep-search />
     <fe-content/>
   </el-config-provider>
 </template>

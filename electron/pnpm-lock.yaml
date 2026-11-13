@@ -17,6 +17,9 @@ importers:
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5
+      prettier:
+        specifier: ^3.10.0
+        version: 3.10.0
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -1075,6 +1078,11 @@ packages:
   postject@1.0.0-alpha.6:
     resolution: {integrity: sha512-b9Eb8h2eVqNE8edvKdwqkrY6O7kAwmI8kcnBv1NScolYJbo59XUF0noFq+lxbC1yN20bmC0WBEbDC5H/7ASb0A==}
     engines: {node: '>=14.0.0'}
+    hasBin: true
+
+  prettier@3.10.0:
+    resolution: {integrity: sha512-mBi4765LgjO1PFjlEs7pUeK0nb1bw71c+N4/ItfeUWNdY5cV2pRKaFpbbFRYmDJMO+5ZwzGxHRqHxFZna7iv5w==}
+    engines: {node: '>=14'}
     hasBin: true
 
   proc-log@6.0.0:
@@ -2825,6 +2833,8 @@ snapshots:
     dependencies:
       commander: 9.4.0
     optional: true
+
+  prettier@3.10.0: {}
 
   proc-log@6.0.0: {}
 

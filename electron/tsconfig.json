@@ -6,8 +6,5 @@
     "rootDir": ".",
     "outDir": "./electron-dist"
   },
-  "include": [
-    "main.ts",
-    "script/**/*.ts"
-  ]
+  "include": ["main.ts", "script/**/*.ts"]
 }

@@ -8,7 +8,7 @@ defineOptions({
 </script>
 
 <template>
-  <div class="fe-content w-full h-full flex flex-col">
+  <div class="fe-content w-screen h-screen flex flex-col bg-white">
     <fe-title/>
     <fe-body/>
   </div>
