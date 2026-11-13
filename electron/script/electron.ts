@@ -1,9 +1,16 @@
 import { BrowserWindow, ipcMain, IpcMainEvent } from "electron";
 import { TElectronChannel } from "./channel";
+import IpcMainInvokeEvent = Electron.IpcMainInvokeEvent;
 
 // electron
 export default (mainWindow: BrowserWindow) => {
-  // 发送：是否是最大化
+  // 渲染进程调用：标题拖动
+  ipcMainOn("electron:move", (event, data) => {
+    const [x, y] = mainWindow.getPosition();
+    mainWindow.setPosition(x + data.dx, y + data.dy);
+  });
+
+  // 主进程监听发送：是否是最大化
   mainWindow.on("resize", () => {
     mainWindowWebContentsSend(
       mainWindow,
@@ -12,9 +19,14 @@ export default (mainWindow: BrowserWindow) => {
     );
   });
 
-  // 发送：是否是最大化
+  // 渲染进程调用：是否是最大化
   ipcMainOn("electron:isMaximized", (event, data) => {
     eventReply(event, "electron:isMaximized", mainWindow.isMaximized());
+  });
+
+  // 渲染进程调用：是否是最大化
+  ipcMainHandle("electron:isMaximized", (event, data) => {
+    return mainWindow.isMaximized();
   });
 
   // 最小化
@@ -37,6 +49,14 @@ export default (mainWindow: BrowserWindow) => {
     mainWindow.close();
   });
 };
+
+// 给 ipcMain 添加方法
+export function ipcMainHandle(
+  channel: TElectronChannel,
+  listener: (event: IpcMainInvokeEvent, data?: any) => Promise<any> | any,
+) {
+  ipcMain.handle(channel, listener);
+}
 
 // 给 ipcMain 添加 listener
 export function ipcMainOn(

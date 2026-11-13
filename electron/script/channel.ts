@@ -1,5 +1,6 @@
 // electron 通道 type
 export type TElectronChannel =
+  | "electron:move"
   | "electron:minimize"
   | "electron:unmaximize"
   | "electron:isMaximized"

@@ -8,17 +8,41 @@ defineOptions({
 const title = ref<string>("...");
 const isMaximized = ref<boolean>(false);
 
-function minimizeClick() {}
+onMounted(() => {
+  window.ipcRenderer?.invoke("electron:isMaximized").then((val: boolean) => {
+    isMaximized.value = val;
+  });
 
-function toggleMaximizeClick() {}
+  window.ipcRenderer?.on("electron:isMaximized", (_e, val) => {
+    isMaximized.value = val;
+  });
+});
 
-function closeClick() {}
+function minimizeClick() {
+  window.ipcRenderer?.send("electron:minimize");
+}
 
-const titleBar = ref(null);
+function toggleMaximizeClick() {
+  if (isMaximized.value) {
+    isMaximized.value = false;
+    window.ipcRenderer?.send("electron:unmaximize");
+  } else {
+    isMaximized.value = true;
+    window.ipcRenderer?.send("electron:maximize");
+  }
+}
+
+function closeClick() {
+  window.ipcRenderer?.send("electron:close");
+}
+
+const titleBar = useTemplateRef<HTMLElement>("titleBar");
 
 useDraggable(titleBar, {
-  onStart() {
-    console.log("开始拖动");
+  onMove(_pos, e) {
+    const dx = e.movementX;
+    const dy = e.movementY;
+    window.ipcRenderer?.send("electron:move", { dx, dy });
   },
 });
 </script>
@@ -26,7 +50,7 @@ useDraggable(titleBar, {
 <template>
   <div
     ref="titleBar"
-    class="fe-title w-full shrink-0 h-11 px-3 flex items-center justify-between bg-gradient-to-r from-white/70 to-gray-100/70 border-b border-gray-300/70"
+    class="fe-title w-full shrink-0 h-11 pl-3 pr-1 flex items-center justify-between bg-gradient-to-r from-gray-100 to-gray-200 border-b border-gray-300 select-none"
   >
     <div class="flex items-center gap-2">
       <div
@@ -66,7 +90,7 @@ useDraggable(titleBar, {
         class="group w-11 h-9 flex items-center justify-center rounded-md text-gray-600 hover:bg-black/5 transition"
       >
         <span
-          class="icon-[mdi--close] text-[18px] group-hover:scale-120 transition"
+          class="icon-[mdi--close] text-[20px] group-hover:scale-120 transition"
         />
       </div>
     </div>
