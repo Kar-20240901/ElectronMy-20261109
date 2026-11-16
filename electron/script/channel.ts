@@ -2,7 +2,8 @@
 export type TElectronChannel =
    "electron:move"
   | "electron:process:list"
-  | "electron:process:kill"
+  | "electron:process:killProcessForPid"
+  | "electron:process:killProcessForPName"
   | "electron:minimize"
   | "electron:unmaximize"
   | "electron:isMaximized"

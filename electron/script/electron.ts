@@ -1,7 +1,7 @@
 import { BrowserWindow, ipcMain, IpcMainEvent } from "electron";
 import { TElectronChannel } from "./channel";
 import IpcMainInvokeEvent = Electron.IpcMainInvokeEvent;
-import { killProcess, listProcesses } from "./processManager";
+import { killProcessForPid, killProcessForPName, listProcesses } from "./processManager";
 
 // electron
 export default (mainWindow: BrowserWindow) => {
@@ -9,8 +9,12 @@ export default (mainWindow: BrowserWindow) => {
     return await listProcesses();
   });
 
-  ipcMainHandle("electron:process:kill", async (event, pid: number) => {
-    return await killProcess(pid);
+  ipcMainHandle("electron:process:killProcessForPid", async (event, pid: number) => {
+    return await killProcessForPid(pid);
+  });
+
+  ipcMainHandle("electron:process:killProcessForPName", async (event, processName: string) => {
+    return await killProcessForPName(processName);
   });
 
   // 渲染进程调用：标题拖动，备注：弃用该方法，采用 electron自带的 -webkit-app-region，原生支持拖拽和双击最大化

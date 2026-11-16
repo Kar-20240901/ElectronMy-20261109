@@ -15,6 +15,8 @@ export async function listProcesses(): Promise<WinProcess[]> {
   }
 
   const psScript = `
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    
     Get-Process |
     Where-Object { $_.MainWindowTitle -ne '' -or $_.Path -ne $null } |
     Select-Object Id, ProcessName, Path |
@@ -37,7 +39,7 @@ export async function listProcesses(): Promise<WinProcess[]> {
   }));
 }
 
-export async function killProcess(pid: number, force = false) {
+export async function killProcessForPid(pid: number, force = false) {
   if (process.platform !== "win32") {
     throw new Error("仅支持 Windows");
   }
@@ -47,6 +49,22 @@ export async function killProcess(pid: number, force = false) {
   }
 
   const args = ["/PID", String(pid), "/T"]; // /T = 杀子进程
+  if (force) args.push("/F");
+
+  const { stdout, stderr } = await execFileP("taskkill", args);
+  return { stdout, stderr };
+}
+
+export async function killProcessForPName(processName: string, force = false) {
+  if (process.platform !== "win32") {
+    throw new Error("仅支持 Windows");
+  }
+
+  if (!processName) {
+    throw new Error("processName为空");
+  }
+
+  const args = ["/IM", String(processName), "/T"]; // /T = 杀子进程
   if (force) args.push("/F");
 
   const { stdout, stderr } = await execFileP("taskkill", args);
