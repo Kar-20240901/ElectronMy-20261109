@@ -51,7 +51,7 @@ export async function killProcessForPid(pid: number, force = false) {
   const args = ["/PID", String(pid), "/T"]; // /T = 杀子进程
   if (force) args.push("/F");
 
-  const { stdout, stderr } = await execFileP("taskkill", args);
+  const { stdout, stderr } = await execFileP("chcp 65001 && taskkill", args);
   return { stdout, stderr };
 }
 
@@ -63,6 +63,8 @@ export async function killProcessForPName(processName: string, force = false) {
   if (!processName) {
     throw new Error("processName为空");
   }
+
+  console.log("processName", processName);
 
   const args = ["/IM", String(processName), "/T"]; // /T = 杀子进程
   if (force) args.push("/F");

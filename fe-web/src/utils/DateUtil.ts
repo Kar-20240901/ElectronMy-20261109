@@ -1,3 +1,9 @@
+import dayjs from "dayjs";
+
+export function FormatDateTimeFull(date: Date = new Date()): string {
+  return dayjs(date).format("YYYY-MM-DD HH:mm:ss.SSS");
+}
+
 export function GetServerTimestamp(
   date: Date = new Date(),
   timezone: number = 8,

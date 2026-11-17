@@ -9,6 +9,7 @@ export const killTypeList = [
 ];
 
 export interface IFormData {
+  selectProcessPid?: number;
   selectProcess?: WinProcess;
   killType?: TKillType;
   killTime?: string;
@@ -20,7 +21,7 @@ export interface KillRespBody {
 }
 
 export interface WinProcess {
-  pid?: number;
+  pid?: number; // 暂时未使用
   name?: string;
   path?: string;
 }

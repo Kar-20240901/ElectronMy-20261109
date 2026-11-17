@@ -2,9 +2,13 @@
 import {
   type IFormData,
   type KillProcessLog,
+  type KillRespBody,
   killTypeList,
+  type TLogKillType,
   type WinProcess,
 } from "@/views/fecontent/types.ts";
+import { FormatDateTimeFull, GetServerTimestamp } from "@/utils/DateUtil.ts";
+import { ToastError } from "@/utils/ToastUtil.ts";
 
 defineOptions({
   name: "FeBody",
@@ -14,26 +18,128 @@ const processList = ref<WinProcess[]>([]);
 
 const formData = ref<IFormData>({ killType: 201 });
 
-const loading = ref<boolean>(true);
+const execLoading = ref<boolean>(false);
 
 onMounted(() => {
-  getProcessList();
+  initFormData();
+
+  initProcessList();
+
+  initKillProcessLogList();
 });
 
-function getProcessList() {
-  loading.value = true;
+const KillProcessFormData = "KillProcessFormData";
+const KillProcessLogList = "KillProcessLogList";
+const ProcessList = "ProcessList";
+
+function initFormData() {
+  formData.value = JSON.parse(
+    localStorage.getItem(KillProcessFormData) || '{"killType":201}',
+  );
+}
+
+function initKillProcessLogList() {
+  killProcessLogList.value = JSON.parse(
+    localStorage.getItem(KillProcessLogList) || "[]",
+  );
+}
+
+let processMap = new Map<number, WinProcess>();
+
+watch(
+  processList,
+  () => {
+    processMap = new Map(processList.value.map((item) => [item.pid!, item]));
+  },
+  { deep: true, immediate: true },
+);
+
+function initProcessList() {
+  processList.value = JSON.parse(localStorage.getItem(ProcessList) || "[]");
 
   window.ipcRenderer
     ?.invoke("electron:process:list")
     .then((list: WinProcess[]) => {
-      processList.value = list || [];
-      loading.value = false;
+      const tempList = list || [];
+
+      const uniqueList = [];
+      const nameSet = new Set();
+
+      for (const item of tempList) {
+        if (!nameSet.has(item.name)) {
+          nameSet.add(item.name);
+          uniqueList.push(item);
+        }
+      }
+
+      processList.value = uniqueList;
+
+      localStorage.setItem(ProcessList, JSON.stringify(processList.value));
     });
 }
 
-function execOneClick() {}
+function execOneClick() {
+  const pName = formData.value.selectProcess?.name;
 
-function saveClick() {}
+  if (!pName) {
+    ToastError("请选择要关闭的程序");
+    return;
+  }
+
+  execLoading.value = true;
+
+  window.ipcRenderer
+    ?.invoke("electron:process:killProcessForPName", pName)
+    .then((killRespBody: KillRespBody) => {
+      console.log("killRespBody", killRespBody);
+
+      addKillProcessLog(killRespBody, 101);
+    })
+    .finally(() => {
+      execLoading.value = false;
+    });
+}
+
+function saveClick() {
+  localStorage.setItem(KillProcessFormData, JSON.stringify(formData.value));
+}
+
+function selectProcessPidChange(pid: number) {
+  const item = processMap.get(pid);
+
+  if (item) {
+    formData.value.selectProcess = item;
+  }
+}
+
+function addKillProcessLog(
+  killRespBody: KillRespBody,
+  logKillType: TLogKillType,
+) {
+  let storageVal: KillProcessLog[] = JSON.parse(
+    localStorage.getItem(KillProcessLogList) || "[]",
+  );
+
+  if (storageVal.length > 100) {
+    storageVal = storageVal.slice(0, 99);
+  }
+
+  const date = new Date();
+
+  storageVal.push({
+    timestamp: GetServerTimestamp(date),
+    killPid: formData.value.selectProcess?.pid,
+    killPName: formData.value.selectProcess?.name,
+    killPPath: formData.value.selectProcess?.path,
+    killTime: FormatDateTimeFull(date),
+    killRespBody: killRespBody,
+    killType: logKillType,
+  });
+
+  killProcessLogList.value = storageVal;
+
+  localStorage.setItem(KillProcessLogList, JSON.stringify(storageVal));
+}
 
 const killProcessLogList = ref<KillProcessLog[]>([]);
 </script>
@@ -44,22 +150,44 @@ const killProcessLogList = ref<KillProcessLog[]>([]);
       <el-form :model="formData" label-width="auto">
         <el-form-item
           label="程序"
-          prop="selectProcess"
+          prop="selectProcessPid"
           :rules="[{ required: true, message: '请选择程序' }]"
         >
           <el-select-v2
-            v-model="formData.selectProcess"
+            v-model="formData.selectProcessPid"
             placeholder="请选择"
             class="!w-[220px]"
             clearable
             filterable
             :options="processList"
-            :loading="loading"
             :props="{
               label: 'name',
               value: 'pid',
             }"
-          />
+            @change="selectProcessPidChange"
+          >
+            <template #label="{ label, value }">
+              <div class="w-full h-full flex items-center">
+                <div class="text-sm mr-2">
+                  {{ label }}
+                </div>
+                <div class="text-xs text-gray-500">
+                  {{ value }}
+                </div>
+              </div>
+            </template>
+
+            <template #default="{ item }">
+              <div class="w-full h-full flex items-center">
+                <div class="text-sm mr-2">
+                  {{ item?.name }}
+                </div>
+                <div class="text-xs text-gray-500">
+                  {{ item?.pid }}
+                </div>
+              </div>
+            </template>
+          </el-select-v2>
         </el-form-item>
 
         <el-form-item
