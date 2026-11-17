@@ -9,7 +9,7 @@ export interface WinProcess {
   path?: string;
 }
 
-export async function listProcesses(): Promise<WinProcess[]> {
+export async function listProcesses(): Promise<WinProcess[] | any> {
   if (process.platform !== "win32") {
     return [];
   }
@@ -22,20 +22,24 @@ export async function listProcesses(): Promise<WinProcess[]> {
     ConvertTo-Json
   `;
 
-  const { stdout } = await execFileP(
-    "powershell",
-    ["-NoProfile", "-NonInteractive", "-Command", psScript],
-    { maxBuffer: 1024 * 1024 * 64 },
-  );
+  try {
+    const { stdout } = await execFileP(
+      "powershell",
+      ["-NoProfile", "-NonInteractive", "-Command", psScript],
+      { maxBuffer: 1024 * 1024 * 64 },
+    );
 
-  const raw = JSON.parse(stdout || "[]");
-  const list = Array.isArray(raw) ? raw : [raw];
+    const raw = JSON.parse(stdout || "[]");
+    const list = Array.isArray(raw) ? raw : [raw];
 
-  return list.map((p: any) => ({
-    pid: p.Id,
-    name: p.ProcessName,
-    path: p.Path,
-  }));
+    return list.map((p: any) => ({
+      pid: p.Id,
+      name: p.ProcessName,
+      path: p.Path,
+    }));
+  } catch (err) {
+    return String(err);
+  }
 }
 
 export async function killProcessForPName(processName: string, force = false) {
@@ -52,11 +56,18 @@ export async function killProcessForPName(processName: string, force = false) {
     Stop-Process -Name "${processName}"
   `;
 
-  const { stdout } = await execFileP(
-    "powershell",
-    ["-NoProfile", "-NonInteractive", "-Command", psScript],
-    { maxBuffer: 1024 * 1024 * 64 },
-  );
+  let stdout;
+  let stderr;
 
-  return { stdout };
+  try {
+    stdout = await execFileP(
+      "powershell",
+      ["-NoProfile", "-NonInteractive", "-Command", psScript],
+      { maxBuffer: 1024 * 1024 * 64 },
+    );
+  } catch (err) {
+    stderr = String(err);
+  }
+
+  return { stdout, stderr };
 }

@@ -23,12 +23,24 @@ const processListLoading = ref<boolean>(true);
 
 const execLoading = ref<boolean>(false);
 
+let initProcessListTimer: null | number = null;
+
 onMounted(() => {
   initFormData();
 
   initProcessList();
 
   initKillProcessLogList();
+
+  initProcessListTimer = setInterval(() => {
+    initProcessList();
+  }, 10000);
+});
+
+onUnmounted(() => {
+  if (initProcessListTimer) {
+    clearInterval(initProcessListTimer);
+  }
 });
 
 const KillProcessFormData = "KillProcessFormData";
@@ -47,16 +59,6 @@ function initKillProcessLogList() {
   );
 }
 
-let processMap = new Map<number, WinProcess>();
-
-watch(
-  processList,
-  () => {
-    processMap = new Map(processList.value.map((item) => [item.pid!, item]));
-  },
-  { deep: true, immediate: true },
-);
-
 function initProcessList() {
   processListLoading.value = true;
 
@@ -65,6 +67,11 @@ function initProcessList() {
   window.ipcRenderer
     ?.invoke("electron:process:list")
     .then((list: WinProcess[]) => {
+      if (!Array.isArray(list)) {
+        ToastError(list);
+        return;
+      }
+
       const tempList = list || [];
 
       const uniqueList = [];
@@ -87,15 +94,10 @@ function initProcessList() {
 }
 
 function execOneClick() {
-  const pName = formData.value.selectProcess?.name;
+  const pName = formData.value.selectProcessPName;
 
   if (!pName) {
     ToastError("请选择要关闭的程序");
-    return;
-  }
-
-  if (!processMap.has(formData.value.selectProcessPid!)) {
-    ToastError("程序不存在，请重新选择");
     return;
   }
 
@@ -108,11 +110,11 @@ function execOneClick() {
 
       initProcessList();
 
-      formData.value.selectProcessPid = undefined;
-
-      selectProcessPidChange(undefined);
-
-      ToastSuccess("执行完成");
+      if (killRespBody.stderr) {
+        ToastError(killRespBody.stderr);
+      } else {
+        ToastSuccess("执行成功");
+      }
     })
     .finally(() => {
       execLoading.value = false;
@@ -131,22 +133,6 @@ function saveClick() {
   });
 }
 
-function selectProcessPidChange(pid?: number) {
-  let item: WinProcess | undefined;
-
-  if (pid === undefined) {
-    item = undefined;
-  } else {
-    item = processMap.get(pid);
-  }
-
-  if (item) {
-    formData.value.selectProcess = item;
-  } else {
-    formData.value.selectProcess = undefined;
-  }
-}
-
 function addKillProcessLog(
   killRespBody: KillRespBody,
   logKillType: TLogKillType,
@@ -161,11 +147,9 @@ function addKillProcessLog(
 
   const date = new Date();
 
-  storageVal.push({
+  storageVal.unshift({
     timestamp: GetServerTimestamp(date),
-    killPid: formData.value.selectProcess?.pid,
-    killPName: formData.value.selectProcess?.name,
-    killPPath: formData.value.selectProcess?.path,
+    killPName: formData.value.selectProcessPName,
     killTime: FormatDateTimeFull(date),
     killRespBody: killRespBody,
     killType: logKillType,
@@ -179,105 +163,106 @@ function addKillProcessLog(
 const killProcessLogList = ref<KillProcessLog[]>([]);
 
 const formRef = ref<FormInstance>();
+
+function clearClick() {
+  formData.value = { killType: 201 };
+
+  formRef.value?.clearValidate();
+
+  localStorage.setItem(KillProcessFormData, JSON.stringify(formData.value));
+
+  ToastSuccess("清除成功");
+}
 </script>
 
 <template>
   <div class="fe-body flex-1 flex flex-col">
-    <div class="flex flex-col items-center mt-4">
-      <el-form :model="formData" label-width="auto" ref="formRef">
-        <el-form-item
-          label="程序"
-          prop="selectProcessPid"
-          :rules="[{ required: true, message: '请选择程序' }]"
-        >
-          <el-select-v2
-            v-model="formData.selectProcessPid"
-            placeholder="请选择"
-            class="!w-[220px]"
-            clearable
-            filterable
-            :options="processList"
-            :props="{
-              label: 'name',
-              value: 'pid',
-            }"
-            @change="selectProcessPidChange"
+    <div class="flex flex-col mt-4">
+      <div class="flex justify-center shrink-0">
+        <el-form :model="formData" label-width="auto" ref="formRef">
+          <el-form-item
+            label="程序"
+            prop="selectProcessPName"
+            :rules="[{ required: true, message: '请选择程序' }]"
           >
-            <template #label="{ label, value }">
-              <div class="w-full h-full flex items-center">
-                <div class="text-sm mr-2">
-                  {{ label }}
-                </div>
-                <div class="text-xs text-gray-500">
-                  {{ value }}
-                </div>
+            <div class="flex items-center">
+              <div>
+                <el-select-v2
+                  v-model="formData.selectProcessPName"
+                  placeholder="请选择"
+                  class="!w-[220px]"
+                  clearable
+                  filterable
+                  :options="processList"
+                  :props="{
+                    label: 'name',
+                    value: 'name',
+                  }"
+                />
               </div>
-            </template>
 
-            <template #default="{ item }">
-              <div class="w-full h-full flex items-center">
-                <div class="text-sm mr-2">
-                  {{ item?.name }}
-                </div>
-                <div class="text-xs text-gray-500">
-                  {{ item?.pid }}
-                </div>
+              <div class="ml-3">
+                <el-button
+                  :loading="processListLoading"
+                  size="small"
+                  @click="initProcessList"
+                  >刷新
+                </el-button>
               </div>
-            </template>
-          </el-select-v2>
+            </div>
+          </el-form-item>
 
-          <el-button
-            :loading="processListLoading"
-            size="small"
-            class="ml-2"
-            @click="initProcessList"
-            >刷新
-          </el-button>
-        </el-form-item>
+          <el-form-item
+            label="循环类别"
+            prop="killType"
+            :rules="[{ required: true, message: '请选择循环类别' }]"
+          >
+            <el-select-v2
+              v-model="formData.killType"
+              placeholder="请选择"
+              class="!w-[220px]"
+              :options="killTypeList"
+            />
+          </el-form-item>
 
-        <el-form-item
-          label="循环类别"
-          prop="killType"
-          :rules="[{ required: true, message: '请选择循环类别' }]"
-        >
-          <el-select-v2
-            v-model="formData.killType"
-            placeholder="请选择"
-            class="!w-[220px]"
-            :options="killTypeList"
-          />
-        </el-form-item>
+          <el-form-item
+            label="循环时间"
+            prop="killTime"
+            :rules="[{ required: true, message: '请选择循环时间' }]"
+          >
+            <el-date-picker
+              v-model="formData.killTime"
+              type="datetime"
+              placeholder="请选择"
+            />
+          </el-form-item>
 
-        <el-form-item
-          label="循环时间"
-          prop="killTime"
-          :rules="[{ required: true, message: '请选择循环时间' }]"
-        >
-          <el-date-picker
-            v-model="formData.killTime"
-            type="datetime"
-            placeholder="请选择"
-          />
-        </el-form-item>
+          <el-form-item>
+            <div class="flex-1 flex items-center gap-1 justify-center">
+              <el-button @click="execOneClick">立即执行一次</el-button>
+              <el-button type="primary" @click="saveClick">保存</el-button>
+              <el-button type="danger" @click="clearClick">清除</el-button>
+            </div>
+          </el-form-item>
+        </el-form>
+      </div>
 
-        <el-form-item>
-          <div class="flex-1 flex items-center gap-1 justify-center">
-            <el-button @click="execOneClick">立即执行一次</el-button>
-            <el-button type="primary" @click="saveClick">保存</el-button>
-          </div>
-        </el-form-item>
-      </el-form>
-
-      <div class="flex-1 flex flex-col text-gray-600 text-sm">
+      <div class="flex-1 flex flex-col text-gray-600 text-sm h-[100px]">
         <div class="mb-2">执行记录</div>
-        <div class="flex flex-col gap-2 justify-center">
+        <div class="flex flex-col gap-2 justify-center flex-1 overflow-y-auto">
           <div v-for="item in killProcessLogList" :key="item.timestamp">
-            <div>killPid：{{ item.killPid }}</div>
             <div>killPName：{{ item.killPName }}</div>
-            <div>killPPath：{{ item.killPPath }}</div>
             <div>killRespBody：{{ item.killRespBody }}</div>
             <div>killTime：{{ item.killTime }}</div>
-            <div>killType：{{ item.killType }}</div>
+            <div>
+              killType：{{
+                item.killType === 101
+                  ? "手动执行"
+                  : item.killType === 201
+                    ? "循环一次"
+                    : "一直循环"
+              }}
+            </div>
           </div>
         </div>
       </div>
