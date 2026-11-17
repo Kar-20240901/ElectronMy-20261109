@@ -45,6 +45,6 @@ export default defineConfig({
       autoInstall: true,
       compiler: "vue3",
     }),
-    vueDevTools(),
+    vueDevTools({ launchEditor: "idea" }),
   ],
 });

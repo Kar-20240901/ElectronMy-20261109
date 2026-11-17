@@ -1,5 +1,34 @@
 import dayjs from "dayjs";
 
+export function getEpochFlag(date: Date) {
+  return date.getTime() <= 0;
+}
+
+export function FormatStringDateTime(
+  dateTimeStr?: string,
+  checkEpochFlag: boolean = true,
+): string {
+  if (!dateTimeStr) {
+    return "";
+  }
+
+  const date = new Date(dateTimeStr);
+
+  if (date.toString() === "Invalid Date") {
+    return "无效时间";
+  }
+
+  if (checkEpochFlag && getEpochFlag(date)) {
+    return "-";
+  }
+
+  return FormatDateTime(date);
+}
+
+export function FormatDateTime(date: Date = new Date()): string {
+  return dayjs(date).format("YYYY-MM-DD HH:mm:ss");
+}
+
 export function FormatDateTimeFull(date: Date = new Date()): string {
   return dayjs(date).format("YYYY-MM-DD HH:mm:ss.SSS");
 }

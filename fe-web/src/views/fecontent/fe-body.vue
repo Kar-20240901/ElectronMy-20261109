@@ -7,7 +7,11 @@ import {
   type TLogKillType,
   type WinProcess,
 } from "@/views/fecontent/types.ts";
-import { FormatDateTimeFull, GetServerTimestamp } from "@/utils/DateUtil.ts";
+import {
+  FormatDateTimeFull,
+  FormatStringDateTime,
+  GetServerTimestamp,
+} from "@/utils/DateUtil.ts";
 import { ToastError, ToastSuccess } from "@/utils/ToastUtil.ts";
 import type { FormInstance } from "element-plus";
 
@@ -19,11 +23,19 @@ const processList = ref<WinProcess[]>([]);
 
 const formData = ref<IFormData>({ killType: 201 });
 
+const localStorageFormData = ref<IFormData>({ killType: 201 });
+
 const processListLoading = ref<boolean>(true);
 
 const execLoading = ref<boolean>(false);
 
 let initProcessListTimer: null | number = null;
+
+let nextExecTimer: null | number = null;
+
+const nextExecTimestamp = ref<number>(-1);
+
+const nextExecFlag = ref<boolean>(false);
 
 onMounted(() => {
   initFormData();
@@ -35,11 +47,30 @@ onMounted(() => {
   initProcessListTimer = setInterval(() => {
     initProcessList();
   }, 10000);
+
+  nextExecTimer = setInterval(() => {
+    if (
+      nextExecTimestamp.value > 0 &&
+      GetServerTimestamp() > nextExecTimestamp.value &&
+      nextExecFlag.value === false
+    ) {
+      nextExecFlag.value = true;
+
+      execOneClick(
+        localStorageFormData.value.selectProcessPName,
+        localStorageFormData.value.killType,
+      );
+    }
+  }, 2000);
 });
 
 onUnmounted(() => {
   if (initProcessListTimer) {
     clearInterval(initProcessListTimer);
+  }
+
+  if (nextExecTimer) {
+    clearInterval(nextExecTimer);
   }
 });
 
@@ -48,9 +79,9 @@ const KillProcessLogList = "KillProcessLogList";
 const ProcessList = "ProcessList";
 
 function initFormData() {
-  formData.value = JSON.parse(
-    localStorage.getItem(KillProcessFormData) || '{"killType":201}',
-  );
+  formData.value = getKillProcessFormData();
+
+  localStorageFormData.value = getKillProcessFormData();
 }
 
 function initKillProcessLogList() {
@@ -93,8 +124,10 @@ function initProcessList() {
     });
 }
 
-function execOneClick() {
-  const pName = formData.value.selectProcessPName;
+function execOneClick(pName?: string, logKillType: TLogKillType = 101) {
+  if (!pName) {
+    pName = formData.value.selectProcessPName;
+  }
 
   if (!pName) {
     ToastError("请选择要关闭的程序");
@@ -106,7 +139,7 @@ function execOneClick() {
   window.ipcRenderer
     ?.invoke("electron:process:killProcessForPName", pName)
     .then((killRespBody: KillRespBody) => {
-      addKillProcessLog(killRespBody, 101);
+      addKillProcessLog(killRespBody, logKillType);
 
       initProcessList();
 
@@ -114,6 +147,10 @@ function execOneClick() {
         ToastError(killRespBody.stderr);
       } else {
         ToastSuccess("执行成功");
+      }
+
+      if (logKillType === 301) {
+        nextExecFlag.value = false;
       }
     })
     .finally(() => {
@@ -129,8 +166,22 @@ function saveClick() {
 
     localStorage.setItem(KillProcessFormData, JSON.stringify(formData.value));
 
+    localStorageFormData.value = { ...formData.value };
+
     ToastSuccess("保存成功");
+
+    nextExecTimestamp.value = GetServerTimestamp(
+      new Date(formData.value.killTime!),
+    );
+
+    nextExecFlag.value = false;
   });
+}
+
+function getKillProcessFormData(): IFormData {
+  return JSON.parse(
+    localStorage.getItem(KillProcessFormData) || '{"killType":201}',
+  );
 }
 
 function addKillProcessLog(
@@ -167,6 +218,8 @@ const formRef = ref<FormInstance>();
 function clearClick() {
   formData.value = { killType: 201 };
 
+  localStorageFormData.value = { ...formData.value };
+
   formRef.value?.clearValidate();
 
   localStorage.setItem(KillProcessFormData, JSON.stringify(formData.value));
@@ -176,8 +229,8 @@ function clearClick() {
 </script>
 
 <template>
-  <div class="fe-body flex-1 flex flex-col">
-    <div class="flex flex-col mt-4">
+  <div class="fe-body flex-1 flex flex-col overflow-hidden">
+    <div class="flex flex-col mt-4 flex-1 overflow-hidden">
       <div class="flex justify-center shrink-0">
         <el-form :model="formData" label-width="auto" ref="formRef">
           <el-form-item
@@ -201,7 +254,7 @@ function clearClick() {
                 />
               </div>
 
-              <div class="ml-3">
+              <div class="ml-3 w-[65px]">
                 <el-button
                   :loading="processListLoading"
                   size="small"
@@ -239,18 +292,59 @@ function clearClick() {
 
           <el-form-item>
             <div class="flex-1 flex items-center gap-1 justify-center">
-              <el-button @click="execOneClick">立即执行一次</el-button>
+              <el-button @click="execOneClick()">立即执行一次</el-button>
               <el-button type="primary" @click="saveClick">保存</el-button>
               <el-button type="danger" @click="clearClick">清除</el-button>
+              <el-popover placement="top" :width="250">
+                <template #default>
+                  <div class="flex flex-col text-gray-600 text-sm">
+                    <div class="w-full flex justify-center mb-2">当前循环</div>
+                    <div
+                      v-if="localStorageFormData.selectProcessPName"
+                      class="flex flex-col"
+                    >
+                      <div>
+                        程序：{{ localStorageFormData.selectProcessPName }}
+                      </div>
+                      <div>
+                        循环类别：{{
+                          localStorageFormData.killType === 201
+                            ? "循环一次"
+                            : "一直循环"
+                        }}
+                      </div>
+                      <div>
+                        循环时间：{{
+                          FormatStringDateTime(localStorageFormData.killTime!)
+                        }}
+                      </div>
+                    </div>
+                    <div
+                      v-else
+                      class="w-full flex justify-center text-gray-500"
+                    >
+                      暂无循环
+                    </div>
+                  </div>
+                </template>
+                <template #reference>
+                  <el-button>当前</el-button>
+                </template>
+              </el-popover>
             </div>
           </el-form-item>
         </el-form>
       </div>
 
-      <div class="flex-1 flex flex-col text-gray-600 text-sm h-[100px]">
-        <div class="mb-2">执行记录</div>
-        <div class="flex flex-col gap-2 justify-center flex-1 overflow-y-auto">
-          <div v-for="item in killProcessLogList" :key="item.timestamp">
+      <div
+        class="flex-1 flex flex-col text-gray-600 text-sm p-2 overflow-hidden"
+      >
+        <div class="mb-2 shrink-0">执行记录</div>
+        <div class="flex flex-col gap-2 flex-1 overflow-auto">
+          <div
+            v-for="(item, index) in killProcessLogList"
+            :key="item.timestamp"
+          >
             <div>killPName：{{ item.killPName }}</div>
             <div>killRespBody：{{ item.killRespBody }}</div>
             <div>killTime：{{ item.killTime }}</div>
@@ -263,6 +357,11 @@ function clearClick() {
                     : "一直循环"
               }}
             </div>
+
+            <div
+              v-if="index !== killProcessLogList.length - 1"
+              class="border-t border-dashed border-gray-300 mt-2"
+            ></div>
           </div>
         </div>
       </div>

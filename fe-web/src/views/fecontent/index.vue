@@ -8,9 +8,7 @@ defineOptions({
 </script>
 
 <template>
-  <div
-    class="fe-content w-screen h-screen flex flex-col bg-white overflow-hidden"
-  >
+  <div class="fe-content w-screen h-screen flex flex-col bg-white">
     <fe-title />
     <fe-body />
   </div>
