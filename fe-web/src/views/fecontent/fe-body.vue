@@ -8,7 +8,8 @@ import {
   type WinProcess,
 } from "@/views/fecontent/types.ts";
 import { FormatDateTimeFull, GetServerTimestamp } from "@/utils/DateUtil.ts";
-import { ToastError } from "@/utils/ToastUtil.ts";
+import { ToastError, ToastSuccess } from "@/utils/ToastUtil.ts";
+import type { FormInstance } from "element-plus";
 
 defineOptions({
   name: "FeBody",
@@ -17,6 +18,8 @@ defineOptions({
 const processList = ref<WinProcess[]>([]);
 
 const formData = ref<IFormData>({ killType: 201 });
+
+const processListLoading = ref<boolean>(true);
 
 const execLoading = ref<boolean>(false);
 
@@ -55,6 +58,8 @@ watch(
 );
 
 function initProcessList() {
+  processListLoading.value = true;
+
   processList.value = JSON.parse(localStorage.getItem(ProcessList) || "[]");
 
   window.ipcRenderer
@@ -75,6 +80,9 @@ function initProcessList() {
       processList.value = uniqueList;
 
       localStorage.setItem(ProcessList, JSON.stringify(processList.value));
+    })
+    .finally(() => {
+      processListLoading.value = false;
     });
 }
 
@@ -86,14 +94,25 @@ function execOneClick() {
     return;
   }
 
+  if (!processMap.has(formData.value.selectProcessPid!)) {
+    ToastError("程序不存在，请重新选择");
+    return;
+  }
+
   execLoading.value = true;
 
   window.ipcRenderer
     ?.invoke("electron:process:killProcessForPName", pName)
     .then((killRespBody: KillRespBody) => {
-      console.log("killRespBody", killRespBody);
-
       addKillProcessLog(killRespBody, 101);
+
+      initProcessList();
+
+      formData.value.selectProcessPid = undefined;
+
+      selectProcessPidChange(undefined);
+
+      ToastSuccess("执行完成");
     })
     .finally(() => {
       execLoading.value = false;
@@ -101,14 +120,30 @@ function execOneClick() {
 }
 
 function saveClick() {
-  localStorage.setItem(KillProcessFormData, JSON.stringify(formData.value));
+  formRef.value?.validate().then((valid: boolean) => {
+    if (!valid) {
+      return;
+    }
+
+    localStorage.setItem(KillProcessFormData, JSON.stringify(formData.value));
+
+    ToastSuccess("保存成功");
+  });
 }
 
-function selectProcessPidChange(pid: number) {
-  const item = processMap.get(pid);
+function selectProcessPidChange(pid?: number) {
+  let item: WinProcess | undefined;
+
+  if (pid === undefined) {
+    item = undefined;
+  } else {
+    item = processMap.get(pid);
+  }
 
   if (item) {
     formData.value.selectProcess = item;
+  } else {
+    formData.value.selectProcess = undefined;
   }
 }
 
@@ -142,12 +177,14 @@ function addKillProcessLog(
 }
 
 const killProcessLogList = ref<KillProcessLog[]>([]);
+
+const formRef = ref<FormInstance>();
 </script>
 
 <template>
   <div class="fe-body flex-1 flex flex-col">
     <div class="flex flex-col items-center mt-4">
-      <el-form :model="formData" label-width="auto">
+      <el-form :model="formData" label-width="auto" ref="formRef">
         <el-form-item
           label="程序"
           prop="selectProcessPid"
@@ -188,6 +225,14 @@ const killProcessLogList = ref<KillProcessLog[]>([]);
               </div>
             </template>
           </el-select-v2>
+
+          <el-button
+            :loading="processListLoading"
+            size="small"
+            class="ml-2"
+            @click="initProcessList"
+            >刷新
+          </el-button>
         </el-form-item>
 
         <el-form-item
@@ -217,23 +262,23 @@ const killProcessLogList = ref<KillProcessLog[]>([]);
 
         <el-form-item>
           <div class="flex-1 flex items-center gap-1 justify-center">
-            <el-button @click="execOneClick"> 立即执行一次</el-button>
+            <el-button @click="execOneClick">立即执行一次</el-button>
             <el-button type="primary" @click="saveClick">保存</el-button>
           </div>
         </el-form-item>
       </el-form>
 
-      <div
-        class="flex-1 flex flex-col items-center gap-1 text-gray-600 text-sm"
-      >
-        <div>执行记录</div>
-        <div v-for="item in killProcessLogList" :key="item.timestamp">
-          <div>killPid：{{ item.killPid }}</div>
-          <div>killPName：{{ item.killPName }}</div>
-          <div>killPPath：{{ item.killPPath }}</div>
-          <div>killRespBody：{{ item.killRespBody }}</div>
-          <div>killTime：{{ item.killTime }}</div>
-          <div>killType：{{ item.killType }}</div>
+      <div class="flex-1 flex flex-col text-gray-600 text-sm">
+        <div class="mb-2">执行记录</div>
+        <div class="flex flex-col gap-2 justify-center">
+          <div v-for="item in killProcessLogList" :key="item.timestamp">
+            <div>killPid：{{ item.killPid }}</div>
+            <div>killPName：{{ item.killPName }}</div>
+            <div>killPPath：{{ item.killPPath }}</div>
+            <div>killRespBody：{{ item.killRespBody }}</div>
+            <div>killTime：{{ item.killTime }}</div>
+            <div>killType：{{ item.killType }}</div>
+          </div>
         </div>
       </div>
     </div>

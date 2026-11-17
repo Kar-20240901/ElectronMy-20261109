@@ -17,7 +17,7 @@ export interface IFormData {
 
 export interface KillRespBody {
   stdout?: string;
-  stderr?: string;
+  // stderr?: string;
 }
 
 export interface WinProcess {

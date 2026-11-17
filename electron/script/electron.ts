@@ -1,16 +1,12 @@
 import { BrowserWindow, ipcMain, IpcMainEvent } from "electron";
 import { TElectronChannel } from "./channel";
 import IpcMainInvokeEvent = Electron.IpcMainInvokeEvent;
-import { killProcessForPid, killProcessForPName, listProcesses } from "./processManager";
+import { killProcessForPName, listProcesses } from "./processManager";
 
 // electron
 export default (mainWindow: BrowserWindow) => {
   ipcMainHandle("electron:process:list", async () => {
     return await listProcesses();
-  });
-
-  ipcMainHandle("electron:process:killProcessForPid", async (event, pid: number) => {
-    return await killProcessForPid(pid);
   });
 
   ipcMainHandle("electron:process:killProcessForPName", async (event, processName: string) => {
