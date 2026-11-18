@@ -9,7 +9,7 @@
     "electron:dev": "chcp 65001 && tsc && electron ./electron-dist/main.js",
     "electron:buildall": "npm run electron:buildfe && npm run electron:build",
     "electron:buildfe": "npm --prefix ../fe-web run fe:build",
-    "electron:build": "chcp 65001 && tsc && electron-builder --win --config electron-builder.yml",
+    "electron:build": "chcp 65001 && tsc && electron-builder --win --config electron-builder.yml"
   },
   "devDependencies": {
     "electron": "^45.2.3",
