@@ -10,13 +10,14 @@
   "description": "electronmy-20261109",
   "main": "./electron-dist/src/index.js",
   "scripts": {
-    "electron:devall": "npm-run-all -p electron:devfe start",
-    "electron:devfe": "npm --prefix ../fe-web run fe:dev",
-    "electron:buildall": "npm run electron:buildfe && npm run make",
-    "electron:buildfe": "npm --prefix ../fe-web run fe:build -- --mode electron",
-    "start": "chcp 65001 && tsc && electron-forge start",
+    "electron:dev:all": "npm-run-all -p electron:dev:fe start",
+    "electron:dev:fe": "npm --prefix ../fe-web run fe:dev",
+    "electron:build:all": "npm run electron:build:fe && npm run make",
+    "electron:build:fe": "npm --prefix ../fe-web run fe:build -- --mode electron",
+    "pre": "chcp 65001 && tsc && node pre.js",
+    "start": "npm run pre && electron-forge start",
     "package": "electron-forge package",
-    "make": "chcp 65001 && tsc && electron-forge make",
+    "make": "npm run pre && electron-forge make",
     "release": "electron-forge release"
   },
   "peerDependencies": {
