@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir:
         mode === "electron"
-          ? "../electron/electron-dist/fe-web-dist"
+          ? "../electron/electron-dist/src/fe-web-dist"
           : "fe-web-dist", // 自定义输出目录
     },
     plugins: [
