@@ -1,20 +1,42 @@
 {
   "name": "electronmy-20261109",
+  "productName": "electronmy-20261109",
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
+  "author": {
+    "name": "dimlt"
+  },
+  "description": "electronmy-20261109",
+  "main": "./electron-dist/src/index.js",
   "scripts": {
-    "electron:devall": "npm-run-all -p electron:devfe electron:dev",
+    "electron:devall": "npm-run-all -p electron:devfe start",
     "electron:devfe": "npm --prefix ../fe-web run fe:dev",
-    "electron:dev": "chcp 65001 && tsc && electron ./electron-dist/main.js",
-    "electron:buildall": "npm run electron:buildfe && npm run electron:build",
-    "electron:buildfe": "npm --prefix ../fe-web run fe:build",
-    "electron:build": "chcp 65001 && tsc && electron-builder --win --config electron-builder.yml"
+    "electron:buildall": "npm run electron:buildfe && npm run make",
+    "electron:buildfe": "npm --prefix ../fe-web run fe:build -- --mode electron",
+    "start": "chcp 65001 && tsc && electron-forge start",
+    "package": "electron-forge package",
+    "make": "chcp 65001 && tsc && electron-forge make",
+    "release": "electron-forge release"
+  },
+  "peerDependencies": {
+    "electron-winstaller": "^5.4.0"
+  },
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.1"
   },
   "devDependencies": {
-    "electron": "^45.2.3",
+    "@electron-forge/cli": "^8.0.1",
+    "@electron-forge/maker-deb": "^8.0.1",
+    "@electron-forge/maker-rpm": "^8.0.1",
+    "@electron-forge/maker-squirrel": "^8.0.1",
+    "@electron-forge/maker-zip": "^8.0.1",
+    "@electron-forge/plugin-auto-unpack-natives": "^8.0.1",
+    "@electron-forge/plugin-fuses": "^8.0.1",
+    "@electron/fuses": "^2.1.3",
+    "electron": "45.3.3",
     "npm-run-all": "^4.1.5",
-    "prettier": "^3.10.0",
-    "typescript": "~6.0.3"
+    "prettier": "^3.10.1",
+    "typescript": "^7.0.2"
   }
 }

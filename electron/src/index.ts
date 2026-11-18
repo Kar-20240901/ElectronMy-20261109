@@ -16,7 +16,7 @@ function createWindow() {
   });
 
   if (app.isPackaged) {
-    mainWindow.loadURL("http://localhost:5173/");
+    mainWindow.loadFile(path.join(__dirname, "./fe-web-dist/index.html"));
   } else {
     // 打开开发工具
     mainWindow.webContents.openDevTools();
