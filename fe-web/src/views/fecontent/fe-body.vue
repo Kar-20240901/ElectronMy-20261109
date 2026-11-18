@@ -8,6 +8,7 @@ import {
   type WinProcess,
 } from "@/views/fecontent/types.ts";
 import {
+  FormatDateTime,
   FormatDateTimeFull,
   FormatStringDateTime,
   GetServerTimestamp,
@@ -33,11 +34,17 @@ let initProcessListTimer: null | number = null;
 
 let nextExecTimer: null | number = null;
 
-const nextExecTimestamp = ref<number>(-1);
+const nextExecTimeStr = ref<string>("");
 
 const nextExecFlag = ref<boolean>(false);
 
+function getNextExecTimeStr(): string {
+  return localStorage.getItem(NextExecTimeStr) || "";
+}
+
 onMounted(() => {
+  nextExecTimeStr.value = getNextExecTimeStr();
+
   initFormData();
 
   initProcessList();
@@ -50,10 +57,25 @@ onMounted(() => {
 
   nextExecTimer = setInterval(() => {
     if (
-      nextExecTimestamp.value > 0 &&
-      GetServerTimestamp() > nextExecTimestamp.value &&
+      nextExecTimeStr.value &&
+      GetServerTimestamp() >
+        GetServerTimestamp(new Date(nextExecTimeStr.value)) &&
       nextExecFlag.value === false
     ) {
+      if (localStorageFormData.value.killType === 301) {
+        const date = new Date(localStorageFormData.value.killTime!);
+
+        date.setDate(date.getDate() + 1);
+
+        nextExecTimeStr.value = FormatDateTime(date);
+
+        localStorage.setItem(NextExecTimeStr, nextExecTimeStr.value);
+      } else {
+        nextExecTimeStr.value = "";
+
+        localStorage.removeItem(NextExecTimeStr);
+      }
+
       nextExecFlag.value = true;
 
       execOneClick(
@@ -77,6 +99,7 @@ onUnmounted(() => {
 const KillProcessFormData = "KillProcessFormData";
 const KillProcessLogList = "KillProcessLogList";
 const ProcessList = "ProcessList";
+const NextExecTimeStr = "NextExecTimeStr";
 
 function initFormData() {
   formData.value = getKillProcessFormData();
@@ -170,9 +193,9 @@ function saveClick() {
 
     ToastSuccess("保存成功");
 
-    nextExecTimestamp.value = GetServerTimestamp(
-      new Date(formData.value.killTime!),
-    );
+    nextExecTimeStr.value = FormatDateTime(new Date(formData.value.killTime!));
+
+    localStorage.setItem(NextExecTimeStr, nextExecTimeStr.value);
 
     nextExecFlag.value = false;
   });
@@ -225,6 +248,14 @@ function clearClick() {
   localStorage.setItem(KillProcessFormData, JSON.stringify(formData.value));
 
   ToastSuccess("清除成功");
+}
+
+function stopClick() {
+  nextExecTimeStr.value = "";
+
+  localStorage.removeItem(NextExecTimeStr);
+
+  ToastSuccess("停止成功");
 }
 </script>
 
@@ -295,7 +326,11 @@ function clearClick() {
               <el-button @click="execOneClick()">立即执行一次</el-button>
               <el-button type="primary" @click="saveClick">保存</el-button>
               <el-button type="danger" @click="clearClick">清除</el-button>
-              <el-popover placement="top" :width="250">
+              <el-button @click="stopClick">停止</el-button>
+              <el-popover
+                placement="top"
+                :width="localStorageFormData.selectProcessPName ? 270 : 250"
+              >
                 <template #default>
                   <div class="flex flex-col text-gray-600 text-sm">
                     <div class="w-full flex justify-center mb-2">当前循环</div>
@@ -318,6 +353,7 @@ function clearClick() {
                           FormatStringDateTime(localStorageFormData.killTime!)
                         }}
                       </div>
+                      <div>下次执行时间：{{ nextExecTimeStr || "-" }}</div>
                     </div>
                     <div
                       v-else
