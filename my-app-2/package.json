@@ -4,15 +4,20 @@
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
-  "main": "./electron-dist/index.js",
+  "author": {
+    "name": "dimlt"
+  },
+  "description": "electronmy-20261109",
+  "main": "./electron-dist/src/index.js",
   "scripts": {
     "electron:devall": "npm-run-all -p electron:devfe start",
     "electron:devfe": "npm --prefix ../fe-web run fe:dev",
     "electron:buildall": "npm run electron:buildfe && npm run make",
     "electron:buildfe": "npm --prefix ../fe-web run fe:build",
-    "start": "electron-forge start",
+    "start": "chcp 65001 && tsc && electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make",
+    "make": "chcp 65001 && tsc",
+    "make2": "electron-forge make",
     "release": "electron-forge release"
   },
   "peerDependencies": {
