@@ -21,7 +21,7 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, "./fe-web-dist/index.html"));
   } else {
     // 打开开发工具，CTRL + SHIFT + I
-    mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
     mainWindow.loadURL("http://localhost:5173/");
   }
 
